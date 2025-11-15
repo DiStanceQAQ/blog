@@ -1,0 +1,3 @@
+# .cursorignore
+# 允许 Cursor 访问 .env 文件（覆盖 .gitignore）
+!.env
