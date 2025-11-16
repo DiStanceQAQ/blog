@@ -6,12 +6,26 @@
  * T12 - 添加分类和标签选择
  */
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useCreateBlog } from "@/hooks/useCreateBlog";
 import { CreateBlogData } from "@/app/admin/blog/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
+import dynamic from "next/dynamic";
+
+// 动态导入 ByteMD 编辑器（仅客户端）
+const Editor = dynamic(() => import("@/components/bytemd/Editor"), {
+    ssr: false,
+    loading: () => (
+        <div className="flex items-center justify-center h-64 border border-gray-300 rounded-lg bg-gray-50">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">加载编辑器中...</p>
+            </div>
+        </div>
+    ),
+});
 
 // 定义分类和标签类型
 interface Category {
@@ -50,7 +64,7 @@ export default function CreateBlogPage() {
         handleSubmit,
         formState: { errors },
         reset,
-        watch,
+        control,
     } = useForm<CreateBlogData & { categoryId?: string; tagIds?: string[] }>({
         defaultValues: {
             title: "",
@@ -201,27 +215,32 @@ export default function CreateBlogPage() {
                     />
                 </div>
 
-                {/* 内容字段 */}
+                {/* 内容字段 - ByteMD 编辑器 */}
                 <div className="mb-6">
                     <label htmlFor="body" className="block text-sm font-medium text-gray-700 mb-2">
                         内容 <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                        id="body"
-                        rows={12}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono text-sm ${errors.body ? "border-red-500" : "border-gray-300"
-                            }`}
-                        placeholder="请输入博客内容（支持 Markdown 格式）"
-                        {...register("body", {
+                    <Controller
+                        name="body"
+                        control={control}
+                        rules={{
                             required: "内容是必需的",
-                            validate: (value) => value.trim().length > 0 || "内容不能为空",
-                        })}
+                            validate: (value) => (value?.trim()?.length ?? 0) > 0 || "内容不能为空",
+                        }}
+                        render={({ field }) => (
+                            <Editor
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                placeholder="请输入博客内容，支持 Markdown 格式..."
+                                height="500px"
+                            />
+                        )}
                     />
                     {errors.body && (
                         <p className="mt-1 text-sm text-red-600">{errors.body.message}</p>
                     )}
                     <p className="mt-2 text-sm text-gray-500">
-                        提示：当前使用简单文本框，后续会集成 ByteMD 编辑器
+                        💡 提示：支持 Markdown 语法，包括标题、列表、代码块、表格等
                     </p>
                 </div>
 

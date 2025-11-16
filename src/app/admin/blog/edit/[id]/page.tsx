@@ -7,11 +7,25 @@
  */
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getBlog, UpdateBlogData } from "@/app/admin/blog/api";
 import { useUpdateBlog } from "@/hooks/useUpdateBlog";
+import dynamic from "next/dynamic";
+
+// 动态导入 ByteMD 编辑器（仅客户端）
+const Editor = dynamic(() => import("@/components/bytemd/Editor"), {
+    ssr: false,
+    loading: () => (
+        <div className="flex items-center justify-center h-64 border border-gray-300 rounded-lg bg-gray-50">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">加载编辑器中...</p>
+            </div>
+        </div>
+    ),
+});
 
 // 定义分类和标签类型
 interface Category {
@@ -40,6 +54,7 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [isFormInitialized, setIsFormInitialized] = useState(false);
 
     // 解析 params
     useEffect(() => {
@@ -66,6 +81,7 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
         handleSubmit,
         formState: { errors },
         reset,
+        control,
     } = useForm<UpdateBlogData>({
         defaultValues: {
             title: "",
@@ -79,24 +95,28 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
 
     // 当博客数据加载完成时，预填充表单
     useEffect(() => {
-        if (blogResponse?.data) {
+        if (blogResponse?.data && !isFormInitialized) {
+            const blog = blogResponse.data;
+
             reset({
-                title: blogResponse.data.title,
-                body: blogResponse.data.body,
-                description: blogResponse.data.description,
-                cover: blogResponse.data.cover || "",
-                published: blogResponse.data.published,
-                categoryId: blogResponse.data.categoryId || "",
+                title: blog.title,
+                body: blog.body,
+                description: blog.description,
+                cover: blog.cover || "",
+                published: blog.published,
+                categoryId: blog.categoryId || "",
             });
-            
+
             // 设置已选择的标签
-            if (blogResponse.data.tags && blogResponse.data.tags.length > 0) {
-                setSelectedTags(blogResponse.data.tags.map((tag) => tag.id));
-            } else {
-                setSelectedTags([]);
-            }
+            const tagIds = blog.tags && blog.tags.length > 0
+                ? blog.tags.map((tag) => tag.id)
+                : [];
+
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSelectedTags(tagIds);
+            setIsFormInitialized(true);
         }
-    }, [blogResponse, reset]);
+    }, [blogResponse, isFormInitialized, reset]);
 
     // 初始化更新 hook
     const { trigger, isUpdating } = useUpdateBlog();
@@ -303,7 +323,7 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
                     />
                 </div>
 
-                {/* 内容字段 */}
+                {/* 内容字段 - ByteMD 编辑器 */}
                 <div className="mb-6">
                     <label
                         htmlFor="body"
@@ -311,23 +331,28 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
                     >
                         内容 <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                        id="body"
-                        rows={12}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono text-sm ${errors.body ? "border-red-500" : "border-gray-300"
-                            }`}
-                        placeholder="请输入博客内容（支持 Markdown 格式）"
-                        {...register("body", {
+                    <Controller
+                        name="body"
+                        control={control}
+                        rules={{
                             required: "内容是必需的",
                             validate: (value) =>
                                 (value?.trim()?.length ?? 0) > 0 || "内容不能为空",
-                        })}
+                        }}
+                        render={({ field }) => (
+                            <Editor
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                placeholder="请输入博客内容，支持 Markdown 格式..."
+                                height="500px"
+                            />
+                        )}
                     />
                     {errors.body && (
                         <p className="mt-1 text-sm text-red-600">{errors.body.message}</p>
                     )}
                     <p className="mt-2 text-sm text-gray-500">
-                        提示：当前使用简单文本框，后续会集成 ByteMD 编辑器
+                        💡 提示：支持 Markdown 语法，包括标题、列表、代码块、表格等
                     </p>
                 </div>
 

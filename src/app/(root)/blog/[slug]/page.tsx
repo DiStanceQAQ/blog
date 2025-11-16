@@ -1,12 +1,14 @@
 /**
  * T09 - 博客详情页
  * 使用 Server Component 通过 slug 获取并渲染博客详情（SSR）
+ * T13 - 使用 Markdown 渲染器展示内容
  */
 
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import Viewer from "@/components/bytemd/Viewer";
 
 /**
  * 格式化日期
@@ -220,7 +222,7 @@ export default async function BlogPage({
             </header>
 
             {/* 文章内容 */}
-            <article className="prose prose-lg max-w-none">
+            <article className="max-w-none">
                 {/* 描述/摘要 */}
                 {blog.description && blog.description !== blog.title && (
                     <div className="mb-8 border-l-4 border-blue-500 bg-blue-50 p-6 text-lg leading-relaxed text-gray-700">
@@ -228,10 +230,8 @@ export default async function BlogPage({
                     </div>
                 )}
 
-                {/* 正文 */}
-                <div className="whitespace-pre-wrap wrap-break-word leading-relaxed">
-                    {blog.body}
-                </div>
+                {/* 正文 - Markdown 渲染 */}
+                <Viewer content={blog.body} />
             </article>
 
             {/* 底部元信息 */}
