@@ -3,6 +3,8 @@
  * 管理后台的主页面
  */
 
+import Link from "next/link";
+
 export default function AdminPage() {
     return (
         <div className="space-y-6">
@@ -23,9 +25,12 @@ export default function AdminPage() {
                     <p className="text-gray-600 text-sm mb-4">
                         创建、编辑和删除博客文章
                     </p>
-                    <button className="text-blue-600 hover:text-blue-700 font-medium">
-                        前往管理 →
-                    </button>
+                    <Link
+                        href="/admin/blog/create"
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                        创建博客 →
+                    </Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow p-6">

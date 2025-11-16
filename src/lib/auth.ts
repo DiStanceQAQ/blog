@@ -29,9 +29,16 @@ export const auth = {
          * 4. 返回完整的 session 对象
          */
         getSession: async (): Promise<Session> => {
-            // Stub 实现：暂时返回 null
-            // 表示当前没有登录用户
-            return null;
+            // 临时返回模拟的管理员 session（用于开发测试）
+            // TODO: 后续替换为真实的 better-auth 实现
+            return {
+                user: {
+                    id: "dev-admin-001",
+                    email: "admin@example.com",
+                    name: "开发管理员",
+                    role: "admin",
+                },
+            };
         },
     },
 };
