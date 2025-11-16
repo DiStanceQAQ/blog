@@ -19,7 +19,7 @@ export default async function Home() {
     return (
         <div className="min-h-screen">
             {/* Hero Section */}
-            <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20">
+            <section className="bg-linear-to-r from-blue-600 to-indigo-700 text-white py-20">
                 <div className="mx-auto max-w-7xl px-6">
                     <h1 className="text-5xl font-bold mb-6">
                         欢迎来到 {SITE_INFO.name}
