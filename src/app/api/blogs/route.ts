@@ -22,11 +22,12 @@ function generateSlug(title: string): string {
 
 /**
  * GET /api/blogs
- * 获取博客列表，支持分页
+ * 获取博客列表，支持分页和搜索
  * 
  * 查询参数：
  * - page: 页码（从 1 开始，默认 1）
  * - pageSize: 每页数量（默认 10）
+ * - query: 搜索关键词（可选，搜索 title、description、body）
  * 
  * 返回格式：
  * {
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1', 10);
         const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+        const query = searchParams.get('query') || '';
 
         // 验证参数合法性
         if (page < 1 || pageSize < 1 || pageSize > 100) {
@@ -52,9 +54,21 @@ export async function GET(request: NextRequest) {
         // 计算跳过的记录数
         const skip = (page - 1) * pageSize;
 
+        // 构建搜索条件
+        const whereCondition = query.trim()
+            ? {
+                OR: [
+                    { title: { contains: query, mode: 'insensitive' as const } },
+                    { description: { contains: query, mode: 'insensitive' as const } },
+                    { body: { contains: query, mode: 'insensitive' as const } },
+                ],
+            }
+            : {};
+
         // 并行查询数据和总数
         const [data, total] = await Promise.all([
             prisma.blog.findMany({
+                where: whereCondition,
                 skip,
                 take: pageSize,
                 orderBy: { createdAt: 'desc' }, // 最新的博客在前
@@ -75,7 +89,7 @@ export async function GET(request: NextRequest) {
                     },
                 },
             }),
-            prisma.blog.count(),
+            prisma.blog.count({ where: whereCondition }),
         ]);
 
         return NextResponse.json(
