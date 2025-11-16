@@ -3,6 +3,8 @@
  * 提供博客相关的 API 调用函数
  */
 
+import { request, RequestError } from "@/lib/request";
+
 /**
  * 创建博客的请求数据类型
  */
@@ -57,22 +59,19 @@ export interface ApiResponse<T> {
  */
 export async function getBlog(id: string): Promise<ApiResponse<Blog>> {
     try {
-        const response = await fetch(`/api/blog/${id}`);
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                error: result.error || `请求失败 (${response.status})`,
-            };
-        }
-
-        return {
-            data: result.data,
-        };
+        const data = await request<Blog>(`/api/blog/${id}`, {
+            showErrorToast: true,
+        });
+        return { data };
     } catch (error) {
         console.error('获取博客失败:', error);
         return {
-            error: error instanceof Error ? error.message : '网络请求失败',
+            error:
+                error instanceof RequestError
+                    ? error.message
+                    : error instanceof Error
+                        ? error.message
+                        : "网络请求失败",
         };
     }
 }
@@ -84,29 +83,23 @@ export async function getBlog(id: string): Promise<ApiResponse<Blog>> {
  */
 export async function createBlog(data: CreateBlogData): Promise<ApiResponse<Blog>> {
     try {
-        const response = await fetch('/api/blogs', {
+        const result = await request<Blog>('/api/blogs', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+            body: data,
+            showErrorToast: true,
+            showSuccessToast: true,
+            successMessage: '博客创建成功！',
         });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                error: result.error || `请求失败 (${response.status})`,
-            };
-        }
-
-        return {
-            data: result.data,
-        };
+        return { data: result };
     } catch (error) {
         console.error('创建博客失败:', error);
         return {
-            error: error instanceof Error ? error.message : '网络请求失败',
+            error:
+                error instanceof RequestError
+                    ? error.message
+                    : error instanceof Error
+                        ? error.message
+                        : "网络请求失败",
         };
     }
 }
@@ -135,29 +128,23 @@ export async function updateBlog(
     data: UpdateBlogData
 ): Promise<ApiResponse<Blog>> {
     try {
-        const response = await fetch(`/api/blog/${id}`, {
+        const result = await request<Blog>(`/api/blog/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+            body: data,
+            showErrorToast: true,
+            showSuccessToast: true,
+            successMessage: '博客更新成功！',
         });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            return {
-                error: result.error || `请求失败 (${response.status})`,
-            };
-        }
-
-        return {
-            data: result.data,
-        };
+        return { data: result };
     } catch (error) {
         console.error('更新博客失败:', error);
         return {
-            error: error instanceof Error ? error.message : '网络请求失败',
+            error:
+                error instanceof RequestError
+                    ? error.message
+                    : error instanceof Error
+                        ? error.message
+                        : "网络请求失败",
         };
     }
 }
