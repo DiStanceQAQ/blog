@@ -3,6 +3,7 @@
 /**
  * T10 - 博客编辑页面
  * 使用 react-hook-form 管理表单，通过 SWR 获取数据并预填充
+ * T12 - 添加分类和标签编辑
  */
 
 import { useEffect, useState } from "react";
@@ -11,6 +12,23 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { getBlog, UpdateBlogData } from "@/app/admin/blog/api";
 import { useUpdateBlog } from "@/hooks/useUpdateBlog";
+
+// 定义分类和标签类型
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+}
+
+interface Tag {
+    id: string;
+    name: string;
+    slug: string;
+    icon?: string | null;
+}
+
+// SWR fetcher
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface EditBlogPageProps {
     params: Promise<{ id: string }>;
@@ -21,11 +39,20 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
     const [blogId, setBlogId] = useState<string>("");
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
     // 解析 params
     useEffect(() => {
         params.then((p) => setBlogId(p.id));
     }, [params]);
+
+    // 获取分类列表
+    const { data: categoriesData } = useSWR<{ data: Category[] }>("/api/categories", fetcher);
+    const categories = categoriesData?.data || [];
+
+    // 获取标签列表
+    const { data: tagsData } = useSWR<{ data: Tag[] }>("/api/tags", fetcher);
+    const tags = tagsData?.data || [];
 
     // 使用 SWR 获取博客数据
     const { data: blogResponse, error: fetchError, isLoading } = useSWR(
@@ -46,6 +73,7 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
             description: "",
             cover: "",
             published: false,
+            categoryId: "",
         },
     });
 
@@ -58,12 +86,27 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
                 description: blogResponse.data.description,
                 cover: blogResponse.data.cover || "",
                 published: blogResponse.data.published,
+                categoryId: blogResponse.data.categoryId || "",
             });
+            
+            // 设置已选择的标签
+            if (blogResponse.data.tags && blogResponse.data.tags.length > 0) {
+                setSelectedTags(blogResponse.data.tags.map((tag) => tag.id));
+            } else {
+                setSelectedTags([]);
+            }
         }
     }, [blogResponse, reset]);
 
     // 初始化更新 hook
     const { trigger, isUpdating } = useUpdateBlog();
+
+    // 标签复选框处理
+    const handleTagToggle = (tagId: string) => {
+        setSelectedTags((prev) =>
+            prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+        );
+    };
 
     // 表单提交处理
     const onSubmit = async (data: UpdateBlogData) => {
@@ -73,8 +116,15 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
         setSuccessMessage("");
         setErrorMessage("");
 
+        // 准备提交数据
+        const submitData: UpdateBlogData = {
+            ...data,
+            categoryId: data.categoryId === "" ? null : data.categoryId,
+            tagIds: selectedTags,
+        };
+
         // 调用更新 API
-        const result = await trigger({ id: blogId, data });
+        const result = await trigger({ id: blogId, data: submitData });
 
         if (result?.data) {
             // 更新成功
@@ -296,6 +346,65 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
                         placeholder="https://example.com/image.jpg"
                         {...register("cover")}
                     />
+                </div>
+
+                {/* 分类选择 */}
+                <div className="mb-6">
+                    <label
+                        htmlFor="categoryId"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                        分类 <span className="text-gray-400">(可选)</span>
+                    </label>
+                    <select
+                        id="categoryId"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        {...register("categoryId")}
+                    >
+                        <option value="">-- 不选择分类 --</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* 标签选择 */}
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        标签 <span className="text-gray-400">(可选，可多选)</span>
+                    </label>
+                    {tags.length === 0 ? (
+                        <p className="text-sm text-gray-500">暂无标签，请先创建标签</p>
+                    ) : (
+                        <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {tags.map((tag) => (
+                                    <label
+                                        key={tag.id}
+                                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedTags.includes(tag.id)}
+                                            onChange={() => handleTagToggle(tag.id)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm text-gray-700">
+                                            {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                                            {tag.name}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {selectedTags.length > 0 && (
+                        <p className="mt-2 text-sm text-gray-600">
+                            已选择 {selectedTags.length} 个标签
+                        </p>
+                    )}
                 </div>
 
                 {/* 发布状态 */}

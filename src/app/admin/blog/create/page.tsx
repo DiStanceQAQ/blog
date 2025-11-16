@@ -3,6 +3,7 @@
 /**
  * T07 - 博客创建页面
  * 使用 react-hook-form 管理表单，使用 SWR mutation 提交数据
+ * T12 - 添加分类和标签选择
  */
 
 import { useForm } from "react-hook-form";
@@ -10,11 +11,38 @@ import { useCreateBlog } from "@/hooks/useCreateBlog";
 import { CreateBlogData } from "@/app/admin/blog/api";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
+
+// 定义分类和标签类型
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+}
+
+interface Tag {
+    id: string;
+    name: string;
+    slug: string;
+    icon?: string | null;
+}
+
+// SWR fetcher
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function CreateBlogPage() {
     const router = useRouter();
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+    // 获取分类列表
+    const { data: categoriesData } = useSWR<{ data: Category[] }>("/api/categories", fetcher);
+    const categories = categoriesData?.data || [];
+
+    // 获取标签列表
+    const { data: tagsData } = useSWR<{ data: Tag[] }>("/api/tags", fetcher);
+    const tags = tagsData?.data || [];
 
     // 初始化表单
     const {
@@ -22,27 +50,43 @@ export default function CreateBlogPage() {
         handleSubmit,
         formState: { errors },
         reset,
-    } = useForm<CreateBlogData>({
+        watch,
+    } = useForm<CreateBlogData & { categoryId?: string; tagIds?: string[] }>({
         defaultValues: {
             title: "",
             body: "",
             description: "",
             cover: "",
             published: false,
+            categoryId: "",
         },
     });
 
     // 初始化 SWR mutation
     const { trigger, isCreating } = useCreateBlog();
 
+    // 标签复选框处理
+    const handleTagToggle = (tagId: string) => {
+        setSelectedTags((prev) =>
+            prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+        );
+    };
+
     // 表单提交处理
-    const onSubmit = async (data: CreateBlogData) => {
+    const onSubmit = async (data: CreateBlogData & { categoryId?: string }) => {
         // 清空之前的消息
         setSuccessMessage("");
         setErrorMessage("");
 
+        // 准备提交数据
+        const submitData: CreateBlogData & { categoryId?: string; tagIds?: string[] } = {
+            ...data,
+            categoryId: data.categoryId && data.categoryId !== "" ? data.categoryId : undefined,
+            tagIds: selectedTags.length > 0 ? selectedTags : undefined,
+        };
+
         // 调用 API 创建博客
-        const result = await trigger(data);
+        const result = await trigger(submitData);
 
         if (result?.data) {
             // 创建成功
@@ -50,6 +94,7 @@ export default function CreateBlogPage() {
 
             // 重置表单
             reset();
+            setSelectedTags([]);
 
             // 可选：3 秒后跳转到博客列表或详情页
             setTimeout(() => {
@@ -192,6 +237,62 @@ export default function CreateBlogPage() {
                         placeholder="https://example.com/image.jpg"
                         {...register("cover")}
                     />
+                </div>
+
+                {/* 分类选择 */}
+                <div className="mb-6">
+                    <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
+                        分类 <span className="text-gray-400">(可选)</span>
+                    </label>
+                    <select
+                        id="categoryId"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        {...register("categoryId")}
+                    >
+                        <option value="">-- 不选择分类 --</option>
+                        {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* 标签选择 */}
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        标签 <span className="text-gray-400">(可选，可多选)</span>
+                    </label>
+                    {tags.length === 0 ? (
+                        <p className="text-sm text-gray-500">暂无标签，请先创建标签</p>
+                    ) : (
+                        <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {tags.map((tag) => (
+                                    <label
+                                        key={tag.id}
+                                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedTags.includes(tag.id)}
+                                            onChange={() => handleTagToggle(tag.id)}
+                                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm text-gray-700">
+                                            {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                                            {tag.name}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {selectedTags.length > 0 && (
+                        <p className="mt-2 text-sm text-gray-600">
+                            已选择 {selectedTags.length} 个标签
+                        </p>
+                    )}
                 </div>
 
                 {/* 发布状态 */}

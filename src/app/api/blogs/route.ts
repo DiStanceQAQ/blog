@@ -102,6 +102,8 @@ export async function GET(request: NextRequest) {
  *   description?: string (可选，默认为 title)
  *   cover?: string (可选)
  *   published?: boolean (可选，默认 false)
+ *   categoryId?: string (可选，分类 ID)
+ *   tagIds?: string[] (可选，标签 ID 数组)
  * }
  * 
  * 返回格式：
@@ -144,6 +146,48 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // 验证 categoryId（如果提供）
+        if (body.categoryId !== undefined && body.categoryId !== null && body.categoryId !== '') {
+            if (typeof body.categoryId !== 'string') {
+                return NextResponse.json(
+                    { error: 'categoryId 必须是字符串' },
+                    { status: 400 }
+                );
+            }
+            // 检查分类是否存在
+            const categoryExists = await prisma.category.findUnique({
+                where: { id: body.categoryId },
+            });
+            if (!categoryExists) {
+                return NextResponse.json(
+                    { error: '指定的分类不存在' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // 验证 tagIds（如果提供）
+        if (body.tagIds !== undefined && body.tagIds !== null) {
+            if (!Array.isArray(body.tagIds)) {
+                return NextResponse.json(
+                    { error: 'tagIds 必须是数组' },
+                    { status: 400 }
+                );
+            }
+            if (body.tagIds.length > 0) {
+                // 检查所有标签是否存在
+                const tags = await prisma.tag.findMany({
+                    where: { id: { in: body.tagIds } },
+                });
+                if (tags.length !== body.tagIds.length) {
+                    return NextResponse.json(
+                        { error: '部分标签不存在' },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         // 生成 slug
         const slug = generateSlug(body.title);
 
@@ -171,16 +215,40 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // 准备创建数据
+        const createData: {
+            title: string;
+            slug: string;
+            description: string;
+            body: string;
+            cover: string | null;
+            published: boolean;
+            category?: { connect: { id: string } };
+            tags?: { connect: { id: string }[] };
+        } = {
+            title: body.title.trim(),
+            slug,
+            description: body.description?.trim() || body.title.trim(),
+            body: body.body,
+            cover: body.cover || null,
+            published: body.published === true,
+        };
+
+        // 关联分类
+        if (body.categoryId && body.categoryId !== '') {
+            createData.category = { connect: { id: body.categoryId } };
+        }
+
+        // 关联标签
+        if (body.tagIds && Array.isArray(body.tagIds) && body.tagIds.length > 0) {
+            createData.tags = {
+                connect: body.tagIds.map((id: string) => ({ id })),
+            };
+        }
+
         // 创建博客
         const blog = await prisma.blog.create({
-            data: {
-                title: body.title.trim(),
-                slug,
-                description: body.description?.trim() || body.title.trim(),
-                body: body.body,
-                cover: body.cover || null,
-                published: body.published === true,
-            },
+            data: createData,
             include: {
                 category: {
                     select: {

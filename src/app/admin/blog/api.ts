@@ -12,6 +12,8 @@ export interface CreateBlogData {
     description?: string;
     cover?: string;
     published?: boolean;
+    categoryId?: string;
+    tagIds?: string[];
 }
 
 /**
@@ -118,6 +120,8 @@ export interface UpdateBlogData {
     description?: string;
     cover?: string;
     published?: boolean;
+    categoryId?: string | null;
+    tagIds?: string[];
 }
 
 /**

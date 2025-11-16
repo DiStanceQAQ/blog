@@ -121,6 +121,8 @@ export async function GET(
  *   description?: string
  *   cover?: string
  *   published?: boolean
+ *   categoryId?: string | null (可以传 null 或空字符串来取消分类)
+ *   tagIds?: string[] (标签 ID 数组，会替换现有标签)
  * }
  * 
  * 返回格式：
@@ -156,7 +158,7 @@ export async function PUT(
         const body = await request.json();
 
         // 验证是否有要更新的字段
-        const updateFields = ['title', 'body', 'description', 'cover', 'published'];
+        const updateFields = ['title', 'body', 'description', 'cover', 'published', 'categoryId', 'tagIds'];
         const hasUpdateFields = updateFields.some(field => field in body);
 
         if (!hasUpdateFields) {
@@ -178,6 +180,48 @@ export async function PUT(
             );
         }
 
+        // 验证 categoryId（如果提供）
+        if ('categoryId' in body && body.categoryId !== null && body.categoryId !== '') {
+            if (typeof body.categoryId !== 'string') {
+                return NextResponse.json(
+                    { error: 'categoryId 必须是字符串' },
+                    { status: 400 }
+                );
+            }
+            // 检查分类是否存在
+            const categoryExists = await prisma.category.findUnique({
+                where: { id: body.categoryId },
+            });
+            if (!categoryExists) {
+                return NextResponse.json(
+                    { error: '指定的分类不存在' },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // 验证 tagIds（如果提供）
+        if ('tagIds' in body && body.tagIds !== null) {
+            if (!Array.isArray(body.tagIds)) {
+                return NextResponse.json(
+                    { error: 'tagIds 必须是数组' },
+                    { status: 400 }
+                );
+            }
+            if (body.tagIds.length > 0) {
+                // 检查所有标签是否存在
+                const tags = await prisma.tag.findMany({
+                    where: { id: { in: body.tagIds } },
+                });
+                if (tags.length !== body.tagIds.length) {
+                    return NextResponse.json(
+                        { error: '部分标签不存在' },
+                        { status: 400 }
+                    );
+                }
+            }
+        }
+
         // 准备更新数据
         const updateData: {
             title?: string;
@@ -186,6 +230,8 @@ export async function PUT(
             description?: string;
             cover?: string | null;
             published?: boolean;
+            category?: { connect: { id: string } } | { disconnect: true };
+            tags?: { set: { id: string }[] };
         } = {};
 
         // 验证并处理 title
@@ -266,6 +312,27 @@ export async function PUT(
         // 处理 published
         if (body.published !== undefined) {
             updateData.published = body.published === true;
+        }
+
+        // 处理 categoryId
+        if ('categoryId' in body) {
+            if (body.categoryId === null || body.categoryId === '') {
+                // 取消关联
+                updateData.category = { disconnect: true };
+            } else {
+                // 设置或更新关联
+                updateData.category = { connect: { id: body.categoryId } };
+            }
+        }
+
+        // 处理 tagIds
+        if ('tagIds' in body) {
+            if (Array.isArray(body.tagIds)) {
+                // 替换所有标签（使用 set 操作）
+                updateData.tags = {
+                    set: body.tagIds.map((tagId: string) => ({ id: tagId })),
+                };
+            }
         }
 
         // 更新博客
