@@ -8,32 +8,32 @@
  */
 export const SITE_INFO = {
     /** 站点名称 */
-    name: "我的博客",
+    name: "刘家宁",
 
     /** 站点标题（用于浏览器标签） */
-    title: "我的博客 - 分享技术与生活",
+    title: "关于刘家宁的一切",
 
     /** 站点描述 */
-    description: "一个基于 Next.js 构建的现代化博客系统，分享编程技术、开发经验和生活感悟",
+    description: "刘家宁的互联网小窝",
 
     /** 站点关键词 */
-    keywords: ["博客", "技术", "编程", "Next.js", "React", "TypeScript"],
+    keywords: ["博客", "技术", "前端", "Next.js", "React", "TypeScript"],
 
     /** 站点语言 */
     locale: "zh-CN",
 
     /** 作者信息 */
     author: {
-        name: "博客作者",
-        email: "admin@example.com",
+        name: "刘家宁",
+        email: "1428040080@qq.com",
         url: "https://example.com",
     },
 
     /** 社交媒体链接 */
     social: {
         github: "https://github.com/yourusername",
-        twitter: "https://twitter.com/yourusername",
-        email: "mailto:admin@example.com",
+        bilibili: "https://space.bilibili.com/20729611?spm_id_from=333.1007.0.0",
+        email: "mailto:1428040080@qq.com",
     },
 
     /** 站点 URL */
@@ -125,8 +125,8 @@ export const FOOTER_LINKS = {
             external: true,
         },
         {
-            label: "Twitter",
-            href: SITE_INFO.social.twitter,
+            label: "BiliBili",
+            href: SITE_INFO.social.bilibili,
             external: true,
         },
     ],

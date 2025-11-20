@@ -1,7 +1,7 @@
 /**
- * T09 - 博客详情页
+ * - 博客详情页
  * 使用 Server Component 通过 slug 获取并渲染博客详情（SSR）
- * T13 - 使用 Markdown 渲染器展示内容
+ * - 使用 Markdown 渲染器展示内容
  */
 
 import { prisma } from "@/lib/prisma";
@@ -28,8 +28,19 @@ function formatDate(date: Date): string {
  */
 async function getBlogBySlug(slug: string) {
     try {
+        // 解码 URL 编码的 slug（处理中文等特殊字符）
+        let decodedSlug = slug;
+        try {
+            decodedSlug = decodeURIComponent(slug);
+        } catch {
+            // 如果解码失败（可能已经是解码后的），使用原始值
+            decodedSlug = slug;
+        }
+
+        console.log("查询 slug (原始):", slug);
+        console.log("查询 slug (解码后):", decodedSlug);
         const blog = await prisma.blog.findUnique({
-            where: { slug },
+            where: { slug: decodedSlug },
             include: {
                 category: {
                     select: {

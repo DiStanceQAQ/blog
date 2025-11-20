@@ -1,3 +1,7 @@
+// Prisma Schema 文件
+// 定义博客系统的数据库模型和关系
+// 使用 PostgreSQL 作为数据库
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,102 +11,131 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/**
+ * 标签模型
+ * 用于对博客进行分类标记，支持多对多关系
+ */
 model Tag {
-  name      String   @unique
-  slug      String   @unique
-  icon      String?
-  iconDark  String?
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  blogs     Blog[]   @relation("BlogToTag")
+  name      String   @unique // 标签名称（唯一）
+  slug      String   @unique // URL 友好的标识符（唯一）
+  icon      String? // 标签图标（可选）
+  iconDark  String? // 暗色模式下的图标（可选）
+  id        String   @id @default(cuid()) // 主键，使用 cuid 生成
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间（自动更新）
+  blogs     Blog[]   @relation("BlogToTag") // 关联的博客列表（多对多）
 
-  @@map("tag")
+  @@map("tag") // 数据库表名映射
 }
 
+/**
+ * 分类模型
+ * 用于对博客进行一级分类，支持一对多关系
+ */
 model Category {
-  name      String   @unique
-  slug      String   @unique
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  blogs     Blog[]
+  name      String   @unique // 分类名称（唯一）
+  slug      String   @unique // URL 友好的标识符（唯一）
+  id        String   @id @default(cuid()) // 主键，使用 cuid 生成
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间（自动更新）
+  blogs     Blog[] // 该分类下的博客列表（一对多）
 
-  @@map("category")
+  @@map("category") // 数据库表名映射
 }
 
+/**
+ * 博客模型
+ * 核心内容模型，存储博客文章的所有信息
+ */
 model Blog {
-  title       String    @unique
-  slug        String    @unique
-  description String
-  body        String
-  cover       String?
-  published   Boolean   @default(false)
-  categoryId  String?
-  id          String    @id @default(cuid())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  category    Category? @relation(fields: [categoryId], references: [id])
-  tags        Tag[]     @relation("BlogToTag")
+  title       String    @unique // 博客标题（唯一）
+  slug        String    @unique // URL 友好的标识符（唯一），用于生成文章链接
+  description String // 博客描述/摘要
+  body        String // 博客正文内容（Markdown 格式）
+  cover       String? // 封面图片 URL（可选）
+  published   Boolean   @default(false) // 发布状态，默认为草稿
+  categoryId  String? // 分类 ID（可选，可为空）
+  id          String    @id @default(cuid()) // 主键，使用 cuid 生成
+  createdAt   DateTime  @default(now()) // 创建时间
+  updatedAt   DateTime  @updatedAt // 更新时间（自动更新）
+  category    Category? @relation(fields: [categoryId], references: [id]) // 所属分类（多对一，可选）
+  tags        Tag[]     @relation("BlogToTag") // 关联的标签列表（多对多）
 
-  @@map("blog")
+  @@map("blog") // 数据库表名映射
 }
 
+/**
+ * 用户模型
+ * 存储用户基本信息和认证相关数据
+ */
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
-  image         String?
-  role          String    @default("visitor")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  accounts      Account[]
-  sessions      Session[]
+  id            String    @id // 用户 ID（主键，通常由认证系统提供）
+  name          String // 用户名称
+  email         String    @unique // 邮箱地址（唯一）
+  emailVerified Boolean   @default(false) // 邮箱是否已验证
+  image         String? // 用户头像 URL（可选）
+  role          String    @default("visitor") // 用户角色，默认为访客（visitor/admin）
+  createdAt     DateTime  @default(now()) // 创建时间
+  updatedAt     DateTime  @default(now()) @updatedAt // 更新时间（自动更新）
+  accounts      Account[] // 关联的账户列表（一对多，支持多种登录方式）
+  sessions      Session[] // 关联的会话列表（一对多）
 
-  @@map("user")
+  @@map("user") // 数据库表名映射
 }
 
+/**
+ * 会话模型
+ * 存储用户登录会话信息，用于身份验证
+ */
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id // 会话 ID（主键）
+  expiresAt DateTime // 过期时间
+  token     String   @unique // 会话令牌（唯一）
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间（自动更新）
+  ipAddress String? // 客户端 IP 地址（可选）
+  userAgent String? // 客户端 User-Agent（可选）
+  userId    String // 用户 ID（外键）
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联的用户（多对一，级联删除）
 
-  @@map("session")
+  @@map("session") // 数据库表名映射
 }
 
+/**
+ * 账户模型
+ * 存储第三方登录账户信息（OAuth、邮箱密码等）
+ * 一个用户可以有多个账户（支持多种登录方式）
+ */
 model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String    @id // 账户 ID（主键）
+  accountId             String // 第三方账户 ID
+  providerId            String // 认证提供商 ID（如 "google", "github", "credentials"）
+  userId                String // 用户 ID（外键）
+  accessToken           String? // 访问令牌（可选）
+  refreshToken          String? // 刷新令牌（可选）
+  idToken               String? // ID 令牌（可选）
+  accessTokenExpiresAt  DateTime? // 访问令牌过期时间（可选）
+  refreshTokenExpiresAt DateTime? // 刷新令牌过期时间（可选）
+  scope                 String? // OAuth 权限范围（可选）
+  password              String? // 密码哈希（仅用于邮箱密码登录，可选）
+  createdAt             DateTime  @default(now()) // 创建时间
+  updatedAt             DateTime  @updatedAt // 更新时间（自动更新）
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade) // 关联的用户（多对一，级联删除）
 
-  @@map("account")
+  @@map("account") // 数据库表名映射
 }
 
+/**
+ * 验证模型
+ * 存储邮箱验证、密码重置等验证令牌
+ */
 model Verification {
-  id         String   @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now()) @updatedAt
+  id         String   @id // 验证记录 ID（主键）
+  identifier String // 标识符
+  value      String // 验证值
+  expiresAt  DateTime // 过期时间
+  createdAt  DateTime @default(now()) // 创建时间
+  updatedAt  DateTime @default(now()) @updatedAt // 更新时间（自动更新）
 
-  @@map("verification")
+  @@map("verification") // 数据库表名映射
 }

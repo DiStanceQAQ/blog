@@ -1,10 +1,11 @@
 /**
- * 前台布局组件
- * 为所有前台页面添加 Navbar 和 Footer
+ * 博客展示布局组件
+ * 为所有博客展示页面添加 Navbar 和 Footer
  */
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { BackToTop } from "@/components/back-to-top";
 import { ReactNode } from "react";
 
 interface RootLayoutProps {
@@ -19,6 +20,7 @@ export default function RootPublicLayout({ children }: RootLayoutProps) {
                 {children}
             </main>
             <Footer />
+            <BackToTop />
         </>
     );
 }

@@ -2,14 +2,20 @@
  * 导航栏组件
  * 使用常量配置，支持响应式设计
  */
-
+/**
+ * TODO:
+ * 高亮，悬停，交互动画，移动端站点名称优化
+ */
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { SITE_INFO, NAV_MENU } from "@/constants/info";
+import { ADMIN_PATHS } from "@/constants/path";
 import Search from "@/components/navbar/Search";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { UserCog } from "lucide-react";
 
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,6 +54,18 @@ export default function Navbar() {
 
                         {/* 主题切换按钮 */}
                         <ThemeToggle />
+                        {/* 后台管理按钮 */}
+                        <Link
+                            href={ADMIN_PATHS.DASHBOARD}
+                            target="_blank"
+                            rel="nofollow"
+                            title="后台管理"
+                            aria-label="后台管理"
+                        >
+                            <Button variant="ghost" size="icon" aria-label="后台管理">
+                                <UserCog className="size-4" />
+                            </Button>
+                        </Link>
 
                         {/* 移动菜单按钮 */}
                         <button

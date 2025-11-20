@@ -3,13 +3,12 @@
  * 使用常量配置，显示站点信息和链接
  */
 
-import Link from "next/link";
 import { SITE_INFO, FOOTER_LINKS } from "@/constants/info";
 
 export default function Footer() {
     return (
         <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-auto">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {/* 站点信息 */}
                     <div>
@@ -22,25 +21,6 @@ export default function Footer() {
                         <p className="text-xs text-gray-500 dark:text-gray-500">
                             {SITE_INFO.copyright}
                         </p>
-                    </div>
-
-                    {/* 主要链接 */}
-                    <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-                            快速链接
-                        </h4>
-                        <ul className="space-y-2">
-                            {FOOTER_LINKS.main.map((link) => (
-                                <li key={link.href}>
-                                    <Link
-                                        href={link.href}
-                                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
                     </div>
 
                     {/* 资源链接 */}
@@ -77,29 +57,6 @@ export default function Footer() {
                                 </li>
                             ))}
                         </ul>
-                    </div>
-                </div>
-
-                {/* 底部信息 */}
-                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
-                            由 <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400">Next.js</a> 强力驱动
-                        </p>
-                        {SITE_INFO.icp && (
-                            <p className="text-xs text-gray-500 dark:text-gray-500">
-                                {SITE_INFO.icp}
-                            </p>
-                        )}
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
-                            联系邮箱：{" "}
-                            <a
-                                href={`mailto:${SITE_INFO.author.email}`}
-                                className="hover:text-blue-600 dark:hover:text-blue-400"
-                            >
-                                {SITE_INFO.author.email}
-                            </a>
-                        </p>
                     </div>
                 </div>
             </div>

@@ -5,13 +5,34 @@
  * 提供博客搜索功能
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Search() {
     const router = useRouter();
     const [query, setQuery] = useState("");
     const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // 检查点击是否在搜索组件内部
+            const searchElement = document.querySelector(".search-component");
+            if (searchElement && !searchElement.contains(event.target as Node)) {
+                setIsExpanded(false);
+            }
+        };
+
+        // 仅在展开时添加监听
+        if (isExpanded) {
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isExpanded]);
 
     /**
      * 处理搜索提交
@@ -39,7 +60,7 @@ export default function Search() {
     };
 
     return (
-        <div className="relative">
+        <div className="relative search-component">
             <form onSubmit={handleSearch} className="relative">
                 <div
                     className={`flex items-center transition-all duration-200 ${isExpanded ? "w-64" : "w-10"

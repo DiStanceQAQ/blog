@@ -6,13 +6,17 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function ThemeToggle() {
     const { theme, setTheme } = useTheme();
-    // 使用 useState 的初始化函数，只在客户端设置为 true
-    // 这样可以避免在 useEffect 中设置状态，防止级联渲染
-    const [mounted] = useState(() => typeof window !== "undefined");
+    const [mounted, setMounted] = useState(false);
+
+    // 在客户端挂载后设置 mounted 为 true
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
 
     // 如果还没有挂载（服务端渲染），显示占位符
     if (!mounted) {
@@ -31,13 +35,7 @@ export function ThemeToggle() {
         <button
             onClick={() => {
                 // 循环切换：light -> dark -> system -> light
-                if (theme === "light") {
-                    setTheme("dark");
-                } else if (theme === "dark") {
-                    setTheme("system");
-                } else {
-                    setTheme("light");
-                }
+                setTheme(theme === "light" ? "dark" : "light")
             }}
             className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors relative group"
             aria-label={`当前主题: ${theme === "system" ? "跟随系统" : theme === "dark" ? "暗色" : "亮色"}`}
