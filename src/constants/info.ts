@@ -31,7 +31,7 @@ export const SITE_INFO = {
 
     /** 社交媒体链接 */
     social: {
-        github: "https://github.com/yourusername",
+        github: "https://github.com/DiStanceQAQ",
         bilibili: "https://space.bilibili.com/20729611?spm_id_from=333.1007.0.0",
         email: "mailto:1428040080@qq.com",
     },

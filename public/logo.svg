@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <rect width="1024" height="1024" fill="black"/>
+  <path fill-rule="evenodd" clip-rule="evenodd"
+    d="M323 235
+       H456
+       A20 20 0 0 1 476 255
+       V833
+       A24 24 0 0 1 452 857
+       H323
+       A20 20 0 0 1 303 837
+       V255
+       A20 20 0 0 1 323 235
+       Z
+
+       M515 711
+       H785
+       A20 20 0 0 1 805 731
+       V857
+       H535
+       A20 20 0 0 1 515 837
+       V711
+       Z"
+    fill="#FAFAFA"/>
+</svg>

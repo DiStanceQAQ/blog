@@ -1,118 +1,119 @@
 "use client";
 
-/**
- * T16 - 搜索组件
- * 提供博客搜索功能
- */
-
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Search() {
+interface SearchProps {
+    isOpen: boolean;
+    setIsOpen: (value: boolean) => void;
+}
+
+export default function Search({ isOpen, setIsOpen }: SearchProps) {
     const router = useRouter();
     const [query, setQuery] = useState("");
-    const [isExpanded, setIsExpanded] = useState(false);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            // 检查点击是否在搜索组件内部
-            const searchElement = document.querySelector(".search-component");
-            if (searchElement && !searchElement.contains(event.target as Node)) {
-                setIsExpanded(false);
+            if (
+                searchContainerRef.current &&
+                !searchContainerRef.current.contains(event.target as Node)
+            ) {
+                setIsOpen(false);
             }
         };
 
-        // 仅在展开时添加监听
-        if (isExpanded) {
+        if (isOpen) {
             document.addEventListener("mousedown", handleClickOutside);
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside);
+            // 稍微延迟聚焦，等待动画开始
+            setTimeout(() => inputRef.current?.focus(), 50);
         }
 
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [isExpanded]);
+    }, [isOpen, setIsOpen]);
 
-    /**
-     * 处理搜索提交
-     */
     const handleSearch = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
-
             if (query.trim()) {
-                // 跳转到搜索结果页
                 router.push(`/blogs?query=${encodeURIComponent(query.trim())}`);
+                setIsOpen(false);
             }
         },
-        [query, router]
+        [query, router, setIsOpen]
     );
 
-    /**
-     * 处理按键事件（支持 Enter 搜索，Escape 清空）
-     */
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Escape') {
             setQuery("");
-            setIsExpanded(false);
+            setIsOpen(false);
         }
     };
 
     return (
-        <div className="relative search-component">
-            <form onSubmit={handleSearch} className="relative">
-                <div
-                    className={`flex items-center transition-all duration-200 ${isExpanded ? "w-64" : "w-10"
-                        }`}
+        <div
+            ref={searchContainerRef}
+            // 1. 移动端(默认): 展开时 absolute inset-0 覆盖整个导航条，且 z-index 最高
+            // 2. 桌面端(md): 保持 relative，宽度从 w-10 变 w-64
+            className={`
+                flex items-center 
+                md:transition-all md:duration-300 md:ease-in-out
+                bg-white dark:bg-gray-900 
+                ${isOpen
+                    ? "absolute inset-0 z-50 px-4 w-full md:static md:inset-auto md:px-0 md:w-64"
+                    : "relative w-10"
+                }
+            `}
+        >
+            <form onSubmit={handleSearch} className="relative w-full flex items-center h-full">
+                {/* 搜索图标按钮 */}
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`
+                        z-10 p-2 transition-colors duration-300
+                        ${isOpen ? "text-primary absolute left-0" : "text-gray-600 hover:text-primary absolute left-0"}
+                    `}
+                    aria-label="搜索"
                 >
-                    {/* 搜索图标按钮 */}
-                    <button
-                        type="button"
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="absolute left-0 p-2 text-gray-600 hover:text-blue-600 transition-colors"
-                        aria-label="搜索"
+                    <svg
+                        className="h-6 w-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
-                        <svg
-                            className="h-5 w-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                        </svg>
-                    </button>
-
-                    {/* 搜索输入框 */}
-                    {isExpanded && (
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="搜索博客..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                            autoFocus
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
-                    )}
-                </div>
+                    </svg>
+                </button>
 
-                {/* 提交按钮（隐藏，通过 Enter 触发） */}
-                <button type="submit" className="hidden" aria-label="提交搜索" />
+                {/* 搜索输入框 */}
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="搜索博客..."
+                    className={`
+                        bg-transparent rounded-lg
+                        focus:outline-none 
+                        transition-all duration-300 ease-in-out
+                        h-10
+                        ${isOpen
+                            ? "w-full pl-10 pr-4 border border-gray-300 dark:border-gray-700 opacity-100"
+                            : "w-0 p-0 border-none opacity-0"
+                        }
+                    `}
+                />
             </form>
-
-            {/* 快捷键提示 */}
-            {isExpanded && query && (
-                <div className="absolute right-0 top-full mt-2 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-200">
-                    按 Enter 搜索，Esc 清空
-                </div>
-            )}
         </div>
     );
 }
-

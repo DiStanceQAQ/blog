@@ -1,10 +1,9 @@
 /**
  * 博客展示布局组件
- * 为所有博客展示页面添加 Navbar 和 Footer
+ * 为所有博客展示页面添加 Navbar
  */
 
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { BackToTop } from "@/components/back-to-top";
 import { ReactNode } from "react";
 
@@ -19,7 +18,7 @@ export default function RootPublicLayout({ children }: RootLayoutProps) {
             <main className="flex-1">
                 {children}
             </main>
-            <Footer />
+            {/* <Footer /> */}
             <BackToTop />
         </>
     );
