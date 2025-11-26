@@ -14,7 +14,7 @@ export const SITE_INFO = {
     title: "关于刘家宁的一切",
 
     /** 站点描述 */
-    description: "刘家宁的互联网小窝",
+    description: "努力转码的GISer",
 
     /** 站点关键词 */
     keywords: ["博客", "技术", "前端", "Next.js", "React", "TypeScript"],

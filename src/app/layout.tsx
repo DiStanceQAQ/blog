@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { SITE_INFO } from "@/constants/info";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
+import { BProgressProvider } from "@/components/providers/b-progress-provider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,9 +54,11 @@ export default function RootLayout({
     <html lang={SITE_INFO.locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} flex flex-col min-h-screen`}>
         <ThemeProvider>
-          <NotificationProvider>
-            {children}
-          </NotificationProvider>
+          <BProgressProvider>
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
+          </BProgressProvider>
         </ThemeProvider>
       </body>
     </html>

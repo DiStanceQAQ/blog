@@ -11,6 +11,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { SITE_INFO, NAV_MENU } from "@/constants/info";
 import { ADMIN_PATHS } from "@/constants/path";
 import Search from "@/components/navbar/Search";
@@ -20,8 +21,15 @@ import { UserCog } from "lucide-react";
 
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    // 新增：将搜索状态提升到 Navbar 管理
     const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+    const pathname = usePathname();
+    // 判断链接是否激活（当前页面）
+    const isActive = (href: string) => {
+        if (href === "/") {
+            return pathname === "/";
+        }
+        return pathname.startsWith(href);
+    };
 
     return (
         <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
@@ -33,7 +41,10 @@ export default function Navbar() {
                     <div className={`flex items-center gap-2 shrink-0`}>
                         <Link
                             href="/"
-                            className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            className={`flex items-center gap-2 text-xl font-bold transition-colors ${pathname === "/"
+                                ? "text-black dark:text-white"
+                                : "text-gray-900 dark:text-white hover:text-black dark:hover:text-white"
+                                }`}
                         >
                             {/* Logo - 始终显示 */}
                             <Image
@@ -50,15 +61,21 @@ export default function Navbar() {
 
                     {/* 桌面导航菜单 - 只有桌面端显示，不受搜索影响（因为桌面端空间够） */}
                     <div className="hidden md:flex md:items-center md:gap-8">
-                        {NAV_MENU.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
+                        {NAV_MENU.map((item) => {
+                            const active = isActive(item.href);
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`transition-all ${active
+                                        ? "font-bold text-black dark:text-white"
+                                        : "font-medium text-gray-700 dark:text-gray-300 hover:font-bold hover:text-black dark:hover:text-white"
+                                        }`}
+                                >
+                                    {item.label}
+                                </Link>
+                            );
+                        })}
                     </div>
 
                     {/* 右侧功能区：搜索、主题、后台、移动菜单 */}
@@ -96,7 +113,7 @@ export default function Navbar() {
                             {/* 移动菜单按钮 */}
                             <button
                                 type="button"
-                                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                                className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:font-bold hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 aria-label="切换移动菜单"
                             >
@@ -115,20 +132,28 @@ export default function Navbar() {
                 </div>
 
                 {/* 移动菜单下拉部分 */}
-                {/* 增加逻辑：如果搜索打开了，强制不显示移动菜单，避免视觉混乱 */}
                 {isMobileMenuOpen && !isSearchExpanded && (
-                    <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-800">
-                        <div className="flex flex-col gap-4">
-                            {NAV_MENU.map((item) => (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium px-2"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    {item.label}
-                                </Link>
-                            ))}
+                    <div className="md:hidden absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg py-4 z-40 animate-in slide-in-from-top-2 fade-in duration-200">
+                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col gap-4">
+                                {NAV_MENU.map((item, index) => {
+                                    const active = isActive(item.href);
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={`transition-all px-2 py-2 rounded-md animate-in  ${active
+                                                ? "font-bold text-black dark:text-white bg-gray-100 dark:bg-gray-800"
+                                                : "font-medium text-gray-700 dark:text-gray-300 hover:font-bold hover:text-black dark:hover:text-white"
+                                                }`}
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 )}
