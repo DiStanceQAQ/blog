@@ -50,6 +50,9 @@ export const ADMIN_PATHS = {
     TAG_LIST: "/admin/tag",
     TAG_CREATE: "/admin/tag/create",
     TAG_EDIT: (id: string) => `/admin/tag/edit/${id}`,
+
+    /** 用户管理 */
+    USER_LIST: "/admin/user",
 } as const;
 
 /**
@@ -70,6 +73,10 @@ export const API_PATHS = {
 
     /** 认证 API */
     AUTH: "/api/auth",
+
+    /** 管理后台 API */
+    ADMIN_STATS: "/api/admin/stats",//统计数据
+    ADMIN_CONTRIBUTION: "/api/admin/contribution",//贡献日历
 } as const;
 
 /**

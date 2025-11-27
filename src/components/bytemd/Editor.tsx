@@ -5,7 +5,7 @@
  * 用于博客内容的 Markdown 编辑
  */
 
-import { Editor as BytemdEditor, EditorProps as BytemdEditorProps } from "bytemd";
+import { Editor as BytemdEditor, EditorProps as BytemdEditorProps } from "@bytemd/react";
 import gfm from "@bytemd/plugin-gfm";
 import highlight from "@bytemd/plugin-highlight";
 import "bytemd/dist/index.css";
@@ -47,7 +47,6 @@ export default function Editor({ value, onChange, placeholder, height = "500px" 
                 overflow: "hidden",
             }}
         >
-            {/* @ts-expect-error ByteMD Editor has type compatibility issues with React 19 */}
             <BytemdEditor
                 value={value}
                 placeholder={placeholder}

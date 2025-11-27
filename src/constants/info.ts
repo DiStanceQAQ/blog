@@ -83,19 +83,19 @@ export const NAV_MENU = [
  */
 export const ADMIN_NAV_MENU = [
     {
-        label: "仪表板",
+        label: "首页",
         href: "/admin",
     },
     {
-        label: "博客管理",
+        label: "博客",
         href: "/admin/blog",
     },
     {
-        label: "分类管理",
+        label: "分类",
         href: "/admin/category",
     },
     {
-        label: "标签管理",
+        label: "标签",
         href: "/admin/tag",
     },
 ] as const;
