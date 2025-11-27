@@ -1,9 +1,34 @@
 /**
- * T03 - 认证系统 stub 实现
- * 提供统一的认证接口，当前返回 null（表示未登录）
- * 后续将替换为 better-auth 的真实实现
+ * Better Auth 认证系统配置
+ * 使用 Prisma 适配器连接数据库
  */
 
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "./prisma";
+
+// 配置 better-auth
+export const auth = betterAuth({
+    database: prismaAdapter(prisma, {
+        provider: "postgresql",
+    }),
+    emailAndPassword: {
+        enabled: true,
+        requireEmailVerification: false, // 开发阶段可以设为 false
+    },
+    // 可以添加社交登录（可选）
+    // socialProviders: {
+    //     github: {
+    //         clientId: process.env.GITHUB_CLIENT_ID!,
+    //         clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    //     },
+    // },
+    baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    basePath: "/api/auth",
+    secret: process.env.BETTER_AUTH_SECRET,
+});
+
+// 导出 Session 类型（兼容现有代码）
 export type Session = {
     user: {
         id: string;
@@ -12,34 +37,4 @@ export type Session = {
         role?: string;
     };
 } | null;
-
-/**
- * auth 对象提供认证相关的 API
- */
-export const auth = {
-    api: {
-        /**
-         * getSession - 获取当前用户的会话信息
-         * @returns Session | null - 当前返回 null（stub 实现）
-         * 
-         * 未来将实现：
-         * 1. 从请求中读取 cookie/token
-         * 2. 验证 token 有效性
-         * 3. 从数据库查询用户信息
-         * 4. 返回完整的 session 对象
-         */
-        getSession: async (): Promise<Session> => {
-            // 临时返回模拟的管理员 session（用于开发测试）
-            // TODO: 后续替换为真实的 better-auth 实现
-            return {
-                user: {
-                    id: "dev-admin-001",
-                    email: "admin@example.com",
-                    name: "开发管理员",
-                    role: "admin",
-                },
-            };
-        },
-    },
-};
 

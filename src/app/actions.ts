@@ -4,30 +4,38 @@
  */
 
 import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 /**
  * 检查当前用户是否有管理员权限
  * @returns true 表示没有权限（需要拒绝访问），false 表示有权限
- * 
- * 当前实现（stub）：
- * - auth.api.getSession() 返回 null（未登录）
- * - 未来将检查 session.user.role === 'admin'
  */
 export async function noAdminPermission(): Promise<boolean> {
     try {
-        // 获取当前会话
-        const session = await auth.api.getSession();
+        // 获取请求头（用于读取 cookie）
+        const headersList = await headers();
 
-        // Stub 阶段：session 始终为 null，表示未登录
+        // 获取当前会话
+        const session = await auth.api.getSession({
+            headers: headersList,
+        });
+
         // 未登录 = 无权限
         if (!session) {
             return true; // 没有权限
         }
 
-        // 未来实现：检查用户角色
-        // if (session.user.role !== 'admin') {
-        //   return true; // 不是管理员，没有权限
-        // }
+        // 从数据库查询用户信息（包含 role 字段）
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true },
+        });
+
+        // 检查用户角色是否为管理员
+        if (!user || user.role !== "admin") {
+            return true; // 不是管理员，没有权限
+        }
 
         // 有管理员权限
         return false;

@@ -35,10 +35,18 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
                             您没有权限访问管理后台。请先登录管理员账号。
                         </p>
 
+                        {/* 登录链接 */}
+                        <Link
+                            href="/auth/sign-in"
+                            className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors mr-4"
+                        >
+                            前往登录
+                        </Link>
+
                         {/* 返回首页链接 */}
                         <Link
                             href="/"
-                            className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+                            className="inline-block px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
                             返回首页
                         </Link>

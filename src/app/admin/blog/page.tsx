@@ -5,6 +5,7 @@
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { DeleteBlogButton } from "@/components/admin/DeleteBlogButton";
 
 /**
  * 格式化日期
@@ -269,6 +270,7 @@ export default async function AdminBlogListPage() {
                                                 </svg>
                                                 编辑
                                             </Link>
+                                            <DeleteBlogButton blogId={blog.id} blogTitle={blog.title} />
                                         </div>
                                     </td>
                                 </tr>

@@ -2,10 +2,6 @@
  * 导航栏组件
  * 使用常量配置，支持响应式设计
  */
-/**
- * TODO:
- * 高亮，悬停，交互动画，移动端站点名称优化
- */
 "use client";
 
 import Link from "next/link";

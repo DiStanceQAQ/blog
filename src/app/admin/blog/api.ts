@@ -148,3 +148,29 @@ export async function updateBlog(
         };
     }
 }
+/**
+ * 删除博客
+ * @param id 博客 ID
+ * @returns 删除成功的消息
+ */
+export async function deleteBlog(id: string): Promise<ApiResponse<{ message: string }>> {
+    try {
+        const result = await request<{ message: string }>(`/api/blog/${id}`, {
+            method: 'DELETE',
+            showErrorToast: true,
+            showSuccessToast: true,
+            successMessage: '博客删除成功！',
+        });
+        return { data: result };
+    } catch (error) {
+        console.error('删除博客失败:', error);
+        return {
+            error:
+                error instanceof RequestError
+                    ? error.message
+                    : error instanceof Error
+                        ? error.message
+                        : "网络请求失败",
+        };
+    }
+}

@@ -1,33 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { toNextJsHandler } from "better-auth/next-js";
-
 import { auth } from "@/lib/auth";
 
 /**
- * T03 - 基础 auth 后端 stub (better-auth 占位实现)
- * 这是一个占位路由，未来将被 better-auth 替代
+ * Better Auth API 路由处理器
  * [...all] 捕获所有 /api/auth/* 路由
+ * 处理登录、注册、登出、会话管理等所有认证相关请求
  */
 
-export async function GET(request: NextRequest) {
-    // 读取 cookie header（用于后续 session 验证）
-    const cookies = request.cookies;
-
-    // 简单健康检查端点
-    return NextResponse.json(
-        { ok: true, message: 'Auth API is running' },
-        { status: 200 }
-    );
-}
-
-export async function POST(request: NextRequest) {
-    // 读取 cookie header
-    const cookies = request.cookies;
-
-    // 占位实现，返回成功响应
-    return NextResponse.json(
-        { ok: true, message: 'Auth API is running' },
-        { status: 200 }
-    );
-}
-
+export const { GET, POST } = toNextJsHandler(auth);
