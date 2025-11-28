@@ -6,15 +6,20 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
 import { BProgressProvider } from "@/components/providers/b-progress-provider"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+// 临时方案：使用 CSS 导入替代 next/font
+// import { Geist, Geist_Mono } from "next/font/google";
+import "../styles/globals.css";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// 注释掉字体配置
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +62,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang={SITE_INFO.locale} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} flex flex-col min-h-screen`}>
+      <body className="flex flex-col min-h-screen">
         <ThemeProvider>
           <BProgressProvider>
             <NotificationProvider>
