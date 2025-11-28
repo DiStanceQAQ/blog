@@ -24,13 +24,23 @@ function generateSlug(name: string): string {
 /**
  * 检查是否有管理员权限
  */
-async function checkAdminPermission(): Promise<boolean> {
+async function checkAdminPermission(request: NextRequest): Promise<boolean> {
     try {
-        const session = await auth.api.getSession();
+        const session = await auth.api.getSession({
+            headers: request.headers,
+        });
         if (!session) {
             return false;
         }
-        return session.user.role === 'admin';
+
+        // 从数据库查询用户信息（包含 role 字段）
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true },
+        });
+
+        // 检查用户角色是否为管理员
+        return user?.role === 'admin';
     } catch (error) {
         console.error('权限检查失败:', error);
         return false;
@@ -79,7 +89,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         // 权限检查
-        const hasPermission = await checkAdminPermission();
+        const hasPermission = await checkAdminPermission(request);
         if (!hasPermission) {
             return NextResponse.json(
                 { error: '无权限执行此操作，需要管理员权限' },

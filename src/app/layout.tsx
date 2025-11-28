@@ -30,6 +30,11 @@ export const metadata: Metadata = {
     },
   ],
   creator: SITE_INFO.author.name,
+  icons: {
+    icon: [
+      { url: '/logo.svg' }, // 默认 favicon
+    ],
+  },
   openGraph: {
     type: "website",
     locale: SITE_INFO.locale,
