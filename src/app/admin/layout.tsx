@@ -9,6 +9,9 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import AdminNavbar from "@/components/admin/AdminNavbar";
 
+// 强制动态渲染，因为需要使用 headers() 进行权限检查
+export const dynamic = 'force-dynamic';
+
 interface AdminLayoutProps {
     children: ReactNode;
 }
