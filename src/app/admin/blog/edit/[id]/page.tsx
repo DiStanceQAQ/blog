@@ -45,16 +45,21 @@ interface Tag {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface EditBlogPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export default function EditBlogPage({ params }: EditBlogPageProps) {
     const router = useRouter();
-    const blogId = params?.id;
+    const [blogId, setBlogId] = useState<string>("");
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [isFormInitialized, setIsFormInitialized] = useState(false);
+
+    // 解析 params
+    useEffect(() => {
+        params.then((p) => setBlogId(p.id));
+    }, [params]);
 
     // 获取分类列表
     const { data: categoriesData } = useSWR<{ data: Category[] }>("/api/categories", fetcher);
