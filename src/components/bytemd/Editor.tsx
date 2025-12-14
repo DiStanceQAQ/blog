@@ -29,12 +29,45 @@ const plugins = [
  * 提供所见即所得的 Markdown 编辑体验
  */
 export default function Editor({ value, onChange, placeholder, height = "500px" }: EditorProps) {
+    /**
+     * 图片上传处理函数
+     * 上传图片到 Vercel Blob Storage
+     */
     const handleUploadImages: BytemdEditorProps['uploadImages'] = async (files: File[]) => {
-        // 可以实现图片上传功能，这里先返回占位符
-        return files.map((file: File) => ({
-            url: URL.createObjectURL(file),
-            title: file.name,
-        }));
+        const uploadPromises = files.map(async (file: File) => {
+            try {
+                // 创建 FormData
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // 调用上传 API
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '上传失败');
+                }
+
+                const data = await response.json();
+
+                return {
+                    url: data.url,
+                    title: file.name,
+                };
+            } catch (error) {
+                console.error('图片上传失败:', error);
+                // 如果上传失败，返回一个本地预览 URL
+                return {
+                    url: URL.createObjectURL(file),
+                    title: file.name,
+                };
+            }
+        });
+
+        return Promise.all(uploadPromises);
     };
 
     return (
