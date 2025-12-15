@@ -111,7 +111,7 @@ export default function AboutPage() {
                                 前端开发
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {["HTML/CSS/JS", "Vue3 生态", "React", "TypeScript", "ElementPlus"].map(skill => (
+                                {["HTML/CSS/JS", "Vue3 生态", "React", "TypeScript", "ElementPlus", "Echarts"].map(skill => (
                                     <span key={skill} className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 shadow-sm">
                                         {skill}
                                     </span>
@@ -125,7 +125,7 @@ export default function AboutPage() {
                                 GIS & 三维可视化
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {["Cesium", "ECharts", "GeoServer", "PostGIS", "WebGL", "OpenLayers"].map(skill => (
+                                {["Cesium", "GeoServer", "PostGIS", "WebGL", "OpenLayers"].map(skill => (
                                     <span key={skill} className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 shadow-sm">
                                         {skill}
                                     </span>
