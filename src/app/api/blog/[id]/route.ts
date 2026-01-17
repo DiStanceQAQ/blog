@@ -103,6 +103,17 @@ export async function GET(
             );
         }
 
+        // 未发布博客仅管理员可访问
+        if (!blog.published) {
+            const hasPermission = await checkAdminPermission(request);
+            if (!hasPermission) {
+                return NextResponse.json(
+                    { error: '博客不存在' },
+                    { status: 404 }
+                );
+            }
+        }
+
         return NextResponse.json(
             { data: blog },
             { status: 200 }
@@ -457,4 +468,3 @@ export async function DELETE(
         );
     }
 }
-

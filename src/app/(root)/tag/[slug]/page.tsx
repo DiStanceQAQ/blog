@@ -6,6 +6,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 /**
  * 格式化日期
@@ -21,11 +22,23 @@ function formatDate(date: Date): string {
 /**
  * 根据 slug 获取标签及其博客
  */
-async function getTagWithBlogs(slug: string) {
+const getTagWithBlogs = cache(async (slug: string) => {
     try {
+        let decodedSlug = slug;
+        try {
+            decodedSlug = decodeURIComponent(slug);
+        } catch {
+            decodedSlug = slug;
+        }
+
         const tag = await prisma.tag.findUnique({
-            where: { slug },
-            include: {
+            where: { slug: decodedSlug },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                icon: true,
+                iconDark: true,
                 blogs: {
                     where: {
                         published: true, // 只显示已发布的博客
@@ -33,7 +46,12 @@ async function getTagWithBlogs(slug: string) {
                     orderBy: {
                         createdAt: 'desc',
                     },
-                    include: {
+                    select: {
+                        id: true,
+                        slug: true,
+                        title: true,
+                        description: true,
+                        createdAt: true,
                         category: {
                             select: {
                                 id: true,
@@ -59,7 +77,7 @@ async function getTagWithBlogs(slug: string) {
         console.error("获取标签失败:", error);
         return null;
     }
-}
+});
 
 /**
  * 生成静态参数
@@ -238,4 +256,3 @@ export default async function TagPage({
         </div>
     );
 }
-

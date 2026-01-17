@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { SITE_INFO } from "@/constants/info";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -8,7 +7,6 @@ import { BProgressProvider } from "@/components/providers/b-progress-provider"
 
 // 临时方案：使用 CSS 导入替代 next/font
 // import { Geist, Geist_Mono } from "next/font/google";
-import "../styles/globals.css";
 
 // 注释掉字体配置
 // const geistSans = Geist({

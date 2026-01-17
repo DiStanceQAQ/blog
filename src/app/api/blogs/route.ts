@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 
 /**
  * T04 - 基本 API 路由：博客列表（GET）与创建（POST）
@@ -18,6 +19,30 @@ function generateSlug(title: string): string {
         .replace(/[^\w\u4e00-\u9fa5-]/g, '') // 保留字母、数字、中文、连字符
         .replace(/--+/g, '-')           // 多个连字符合并为一个
         .replace(/^-+|-+$/g, '');       // 移除首尾连字符
+}
+
+/**
+ * 检查是否有管理员权限
+ */
+async function checkAdminPermission(request: NextRequest): Promise<boolean> {
+    try {
+        const session = await auth.api.getSession({
+            headers: request.headers,
+        });
+        if (!session) {
+            return false;
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true },
+        });
+
+        return user?.role === 'admin';
+    } catch (error) {
+        console.error('权限检查失败:', error);
+        return false;
+    }
 }
 
 /**
@@ -41,7 +66,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1', 10);
         const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
-        const query = searchParams.get('query') || '';
+        const query = (searchParams.get('query') || '').trim();
 
         // 验证参数合法性
         if (page < 1 || pageSize < 1 || pageSize > 100) {
@@ -54,16 +79,22 @@ export async function GET(request: NextRequest) {
         // 计算跳过的记录数
         const skip = (page - 1) * pageSize;
 
+        // 非管理员默认只返回已发布内容
+        const isAdmin = await checkAdminPermission(request);
+
         // 构建搜索条件
-        const whereCondition = query.trim()
-            ? {
-                OR: [
-                    { title: { contains: query, mode: 'insensitive' as const } },
-                    { description: { contains: query, mode: 'insensitive' as const } },
-                    { body: { contains: query, mode: 'insensitive' as const } },
-                ],
-            }
-            : {};
+        const whereCondition = {
+            ...(isAdmin ? {} : { published: true }),
+            ...(query
+                ? {
+                    OR: [
+                        { title: { contains: query, mode: 'insensitive' as const } },
+                        { description: { contains: query, mode: 'insensitive' as const } },
+                        { body: { contains: query, mode: 'insensitive' as const } },
+                    ],
+                }
+                : {}),
+        };
 
         // 并行查询数据和总数
         const [data, total] = await Promise.all([
@@ -72,7 +103,15 @@ export async function GET(request: NextRequest) {
                 skip,
                 take: pageSize,
                 orderBy: { createdAt: 'desc' }, // 最新的博客在前
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    description: true,
+                    cover: true,
+                    published: true,
+                    createdAt: true,
+                    updatedAt: true,
                     category: {
                         select: {
                             id: true,
@@ -127,6 +166,15 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        // 权限检查
+        const hasPermission = await checkAdminPermission(request);
+        if (!hasPermission) {
+            return NextResponse.json(
+                { error: '无权限执行此操作，需要管理员权限' },
+                { status: 401 }
+            );
+        }
+
         // 解析请求体
         const body = await request.json();
 
@@ -304,4 +352,3 @@ export async function POST(request: NextRequest) {
         );
     }
 }
-

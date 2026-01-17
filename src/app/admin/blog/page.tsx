@@ -29,7 +29,13 @@ async function getAllBlogs() {
             orderBy: {
                 createdAt: "desc", // 最新的在前面
             },
-            include: {
+            select: {
+                id: true,
+                title: true,
+                slug: true,
+                description: true,
+                published: true,
+                createdAt: true,
                 category: {
                     select: {
                         id: true,
@@ -282,4 +288,3 @@ export default async function AdminBlogListPage() {
         </div>
     );
 }
-

@@ -4,13 +4,35 @@
  */
 
 import useSWR from 'swr';
-import { Blog } from '@/app/admin/blog/api';
+/**
+ * 博客列表项类型（列表接口不会返回正文）
+ */
+interface BlogSummary {
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    cover: string | null;
+    published: boolean;
+    createdAt: string;
+    updatedAt: string;
+    category?: {
+        id: string;
+        name: string;
+        slug: string;
+    } | null;
+    tags?: Array<{
+        id: string;
+        name: string;
+        slug: string;
+    }>;
+}
 
 /**
  * 博客列表响应类型
  */
 interface BlogsResponse {
-    data: Blog[];
+    data: BlogSummary[];
     total: number;
 }
 
@@ -102,4 +124,3 @@ export function useGetBlogs(params?: GetBlogsParams) {
         hasData: !!data,
     };
 }
-

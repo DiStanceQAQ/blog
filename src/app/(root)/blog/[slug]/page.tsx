@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Viewer from "@/components/bytemd/Viewer";
+import { cache } from "react";
 
 /**
  * 格式化日期
@@ -26,7 +27,7 @@ function formatDate(date: Date): string {
 /**
  * 根据 slug 获取博客
  */
-async function getBlogBySlug(slug: string) {
+const getBlogBySlug = cache(async (slug: string) => {
     try {
         // 解码 URL 编码的 slug（处理中文等特殊字符）
         let decodedSlug = slug;
@@ -37,11 +38,17 @@ async function getBlogBySlug(slug: string) {
             decodedSlug = slug;
         }
 
-        console.log("查询 slug (原始):", slug);
-        console.log("查询 slug (解码后):", decodedSlug);
-        const blog = await prisma.blog.findUnique({
-            where: { slug: decodedSlug },
-            include: {
+        const blog = await prisma.blog.findFirst({
+            where: { slug: decodedSlug, published: true },
+            select: {
+                title: true,
+                slug: true,
+                description: true,
+                body: true,
+                cover: true,
+                published: true,
+                createdAt: true,
+                updatedAt: true,
                 category: {
                     select: {
                         id: true,
@@ -65,7 +72,7 @@ async function getBlogBySlug(slug: string) {
         console.error("获取博客失败:", error);
         return null;
     }
-}
+});
 
 /**
  * 生成静态参数（可选，用于静态生成）
@@ -280,4 +287,3 @@ export default async function BlogPage({
         </div>
     );
 }
-

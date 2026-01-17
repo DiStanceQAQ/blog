@@ -3,17 +3,28 @@
  * 统计最近 52 周（364 天）每天的操作次数
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
 
 /**
  * 检查管理员权限
  */
-async function checkAdminPermission(): Promise<boolean> {
+async function checkAdminPermission(request: NextRequest): Promise<boolean> {
     try {
-        // TODO: 实现真实的权限检查
-        // 当前返回 true（stub 实现）
-        return true;
+        const session = await auth.api.getSession({
+            headers: request.headers,
+        });
+        if (!session) {
+            return false;
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true },
+        });
+
+        return user?.role === 'admin';
     } catch (error) {
         console.error('权限检查失败:', error);
         return false;
@@ -32,10 +43,10 @@ async function checkAdminPermission(): Promise<boolean> {
  *   }>
  * }
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         // 权限检查
-        const hasPermission = await checkAdminPermission();
+        const hasPermission = await checkAdminPermission(request);
         if (!hasPermission) {
             return NextResponse.json(
                 { error: '无权限执行此操作，需要管理员权限' },

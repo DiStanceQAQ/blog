@@ -21,7 +21,12 @@ export async function getPublishedBlogs() {
       orderBy: {
         createdAt: "desc" // 最新的在前面
       },
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        createdAt: true,
         tags: {
           select: {
             id: true,
