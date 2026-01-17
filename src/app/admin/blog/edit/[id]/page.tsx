@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import useSWR from "swr";
 import { getBlog, UpdateBlogData } from "@/app/admin/blog/api";
 import { useUpdateBlog } from "@/hooks/useUpdateBlog";
@@ -44,13 +44,10 @@ interface Tag {
 // SWR fetcher
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-interface EditBlogPageProps {
-    params: { id: string };
-}
-
-export default function EditBlogPage({ params }: EditBlogPageProps) {
+export default function EditBlogPage() {
     const router = useRouter();
-    const blogId = params.id;
+    const params = useParams<{ id: string }>();
+    const blogId = Array.isArray(params.id) ? params.id[0] : params.id || "";
     const [successMessage, setSuccessMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
